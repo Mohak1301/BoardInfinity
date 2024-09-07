@@ -5,7 +5,7 @@ import {
 
 
 } from "../Controllers/authController.js";
-import { getUsersController ,getUsersByIdController, updateUsersController} from "../Controllers/managementController.js";
+import { getUsersController ,getUsersByIdController, updateUsersController, softDeleteUserController} from "../Controllers/managementController.js";
 import { isAdmin, isAdminorManager, requireSignIn } from "../Middleware/authMiddleware.js";
 
 //router object
@@ -16,6 +16,11 @@ router.post("/", requireSignIn,isAdmin,registerController);
 router.get("/",requireSignIn,isAdminorManager,getUsersController);
 router.get("/:id",requireSignIn,getUsersByIdController)
 router.put("/:id",requireSignIn,isAdmin,updateUsersController)
+
+// Soft Delete User
+router.delete("/:id", requireSignIn, isAdmin, softDeleteUserController);
+
+
 
 
 
