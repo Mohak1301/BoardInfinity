@@ -5,7 +5,8 @@ import {
   getUsersByIdController,
   updateUsersController,
   softDeleteUserController,
-  permanentDeleteUserController
+  permanentDeleteUserController,
+  restoreUserController
 } from "../Controllers/managementController.js";
 import {
   isAdmin,
@@ -27,5 +28,12 @@ router.delete("/:id", requireSignIn, isAdmin, softDeleteUserController);
 
 // Permanent Delete User
 router.delete("/permanent/:id",requireSignIn,isAdmin,permanentDeleteUserController);
+
+
+// Restore User
+router.patch("/restore/:id", requireSignIn, isAdmin, restoreUserController);
+
+
+
 
 export default router;

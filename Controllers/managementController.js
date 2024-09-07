@@ -135,3 +135,36 @@ export const permanentDeleteUserController = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+  
+export const restoreUserController = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await userModel.findByIdAndUpdate(id, { isDeleted: false }, { new: true });
+  
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: "User not found or already active",
+        });
+      }
+  
+      res.status(200).send({
+        success: true,
+        message: "User restored successfully",
+        user,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        message: "Error while restoring user",
+        error,
+      });
+    }
+  };
+  
