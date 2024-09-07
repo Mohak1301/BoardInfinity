@@ -110,4 +110,28 @@ export const softDeleteUserController = async (req, res) => {
   }
 };
 
+export const permanentDeleteUserController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findByIdAndDelete(id);
 
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "User permanently deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while permanently deleting user",
+      error,
+    });
+  }
+};
