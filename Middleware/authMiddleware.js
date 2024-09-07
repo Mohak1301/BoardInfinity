@@ -31,3 +31,19 @@ export const isAdmin = async (req, res, next) => {
     res.status(403).send({ message: "Access Denied, Admin Only" });
   }
 };
+
+export const isAdminorManager = async (req, res, next) => {
+
+
+  try {
+    const user = await userModel.findById(req.user._id).populate("roleId");
+   
+    if (user.roleId === "Admin" || user.roleId==="Manager") {
+      next();
+    } else {
+      res.status(403).send({ message: "Access Denied, Admin or Manager Only" });
+    }
+  } catch (error) {
+    res.status(403).send({ message: "Access Denied, Admin or Manager Only" });
+  }
+};
