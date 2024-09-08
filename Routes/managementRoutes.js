@@ -36,6 +36,7 @@ router.patch("/restore/:id", requireSignIn, isAdmin, restoreUserController);
 
 router.post("/:id/assign-role",requireSignIn,isAdmin,assignRoleController)
 
+router.post("/:id/assign-role", requireSignIn, isAdmin, assignRoleController);
 
 
 

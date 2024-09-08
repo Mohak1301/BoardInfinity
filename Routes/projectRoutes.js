@@ -26,4 +26,5 @@ router.delete("/:id", requireSignIn, isAdmin, softDeleteProjectController);
 router.delete("/permanent/:id", requireSignIn, isAdmin, permanentDeleteProjectController);
 router.patch("/restore/:id",requireSignIn,isAdmin,restoreProjectController)
 
+
 export default router;
