@@ -273,3 +273,43 @@ export const permanentDeleteProjectController = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+// Restore Project Controller
+export const restoreProjectController = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract project ID from request parameters
+
+    // Restore the project by setting `isDeleted` to false
+    const project = await projectModel.findByIdAndUpdate(
+      id,
+      { isDeleted: false, deletedAt: null }, // Also reset the `deletedAt` field to null
+      { new: true } // Return the updated project document
+    );
+
+    // If project is not found or is already active
+    if (!project) {
+      return res.status(404).send({
+        success: false,
+        message: "Project not found or already active",
+      });
+    }
+
+    // Return a success response
+    res.status(200).send({
+      success: true,
+      message: "Project restored successfully",
+      project,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while restoring project",
+      error,
+    });
+  }
+};

@@ -12,6 +12,7 @@ import {
   updateProjectController,
   softDeleteProjectController,
   permanentDeleteProjectController,
+  restoreProjectController,
 } from "../Controllers/projectController.js";
 
 //router object
@@ -23,5 +24,6 @@ router.get("/:id", requireSignIn, getProjectByIdController);
 router.put("/:id", requireSignIn, isAdmin, updateProjectController);
 router.delete("/:id", requireSignIn, isAdmin, softDeleteProjectController);
 router.delete("/permanent/:id", requireSignIn, isAdmin, permanentDeleteProjectController);
+router.patch("/restore/:id",requireSignIn,isAdmin,restoreProjectController)
 
 export default router;
