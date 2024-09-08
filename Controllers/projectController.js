@@ -141,3 +141,135 @@ export const getProjectByIdController = async (req, res) => {
     });
   }
 };
+
+
+
+
+export const updateProjectController = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract project ID from request parameters
+    const { name, description, assignedTo } = req.body; // Extract fields from request body
+
+    // Validation
+    if (!name && !description && !assignedTo) {
+      return res.status(400).send({
+        success: false,
+        message: "At least one field (name, description, assignedTo) must be provided for update",
+      });
+    }
+
+    // Ensure the user is an Admin (assuming isAdmin middleware sets this correctly)
+    if (req.user.roleId !== "Admin") {
+      return res.status(403).send({
+        success: false,
+        message: "Access Denied: Only Admins can update projects",
+      });
+    }
+
+    // Find the project by ID and update it
+    const updatedProject = await projectModel.findByIdAndUpdate(
+      id,
+      { 
+        name,
+        description,
+        assignedTo,
+        updatedAt: new Date() // Update the timestamp
+      },
+      { new: true } // Return the updated document
+    );
+
+    // If project is not found
+    if (!updatedProject) {
+      return res.status(404).send({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    // Return the updated project details
+    res.status(200).send({
+      success: true,
+      message: "Project updated successfully",
+      project: updatedProject,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while updating project",
+      error,
+    });
+  }
+};
+
+
+
+
+
+// Soft Delete Project Controller
+export const softDeleteProjectController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Soft delete the project by setting the isDeleted flag to true
+    const project = await projectModel.findByIdAndUpdate(
+      id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
+
+    if (!project) {
+      return res.status(404).send({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "Project soft deleted successfully",
+      project,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while soft deleting project",
+      error,
+    });
+  }
+};
+
+
+
+
+// Permanent Delete Project Controller
+export const permanentDeleteProjectController = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract project ID from request parameters
+
+    // Permanently delete the project by its ID
+    const project = await projectModel.findByIdAndDelete(id);
+
+    // If the project is not found
+    if (!project) {
+      return res.status(404).send({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    // Return a success response
+    res.status(200).send({
+      success: true,
+      message: "Project permanently deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while permanently deleting project",
+      error,
+    });
+  }
+};
