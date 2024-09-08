@@ -13,16 +13,23 @@ const projectSchema = new mongoose.Schema(
       trim: true,
     },
     createdBy: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Reference to the User model
       required: true, // User ID of the project creator
     },
-    assignedTo: {
-      type: [String], // Array of User IDs assigned to the project
-      default: [],
-    },
+    assignedTo: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Reference to the User model
+      },
+    ],
     deletedAt: {
       type: Date, // For soft delete
       default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
