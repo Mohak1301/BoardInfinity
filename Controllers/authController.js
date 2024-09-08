@@ -6,7 +6,7 @@ import JWT from "jsonwebtoken";
 
 export const signupController = async (req, res) => {
   try {
-    const { username, name, email, password, phone, address, answer, role } = req.body;
+    const { username, name, email, password, phone, address, role } = req.body;
 
     // Check if role is Admin and if there's already an Admin user
     if (role === "Admin") {
@@ -90,7 +90,7 @@ export const loginController = async (req, res) => {
         message: "Email is not registerd",
       });
     }
-    console.log(user)
+  
     const match = await comparePassword(password, user.password);
     if (!match) {
       return res.status(200).send({

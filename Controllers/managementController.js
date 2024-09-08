@@ -136,35 +136,81 @@ export const permanentDeleteUserController = async (req, res) => {
   }
 };
 
-
-
-
-
-  
 export const restoreUserController = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const user = await userModel.findByIdAndUpdate(id, { isDeleted: false }, { new: true });
-  
-      if (!user) {
-        return res.status(404).send({
-          success: false,
-          message: "User not found or already active",
-        });
-      }
-  
-      res.status(200).send({
-        success: true,
-        message: "User restored successfully",
-        user,
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({
+  try {
+    const { id } = req.params;
+    const user = await userModel.findByIdAndUpdate(
+      id,
+      { isDeleted: false },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).send({
         success: false,
-        message: "Error while restoring user",
-        error,
+        message: "User not found or already active",
       });
     }
-  };
-  
+
+    res.status(200).send({
+      success: true,
+      message: "User restored successfully",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while restoring user",
+      error,
+    });
+  }
+};
+
+
+
+
+
+// Controller to assign a role to a user
+export const assignRoleController = async (req, res) => {
+  try {
+    const { id } = req.params; // User ID from the URL parameter
+    const { roleId } = req.body; // Role ID to assign from the request body
+
+    // Validate role input
+    if (!roleId || !['Admin', 'Manager', 'Employee'].includes(roleId)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid role provided. Choose between 'Admin', 'Manager', or 'Employee'.",
+      });
+    }
+
+    // Find the user by ID and update their roleId
+    const user = await userModel.findByIdAndUpdate(
+      id,
+      { roleId },
+      { new: true } // Return the updated document
+    );
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: 'Role assigned successfully.',
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      success: false,
+      message: 'Error while assigning role to the user.',
+      error,
+    });
+  }
+};
+

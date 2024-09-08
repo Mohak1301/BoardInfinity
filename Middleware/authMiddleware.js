@@ -1,19 +1,40 @@
 import JWT from "jsonwebtoken";
 import userModel from "../Models/userModel.js";
-// import roleModel from "../Models/roleModel.js";
 
-export const requireSignIn = (req, res, next) => {
+export const requireSignIn = async (req, res, next) => {
   try {
-    const decode = JWT.verify(
-      req.headers.authorization,
-      process.env.JWT_SECRETKEY
-    );
-    req.user = decode;
+    // Verify the token from the Authorization header
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).send({ message: "Unauthorized: No token provided" });
+    }
+    const decode = JWT.verify(token, process.env.JWT_SECRETKEY);
+
+    // Find the user by ID from the decoded token
+    const user = await userModel.findById(decode._id);
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    // Attach the user's ID and roleId to the request object
+    req.user = {
+      _id: user._id,
+      roleId: user.roleId, // Assuming roleId is defined in the user model
+    };
+
+    console.log(req.user); // Log the user details for debugging
+
     next();
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(401).send({
+      success: false,
+      message: "Unauthorized: Invalid token",
+      error,
+    });
   }
 };
+
 
 export const isAdmin = async (req, res, next) => {
   console.log(req.user._id)
