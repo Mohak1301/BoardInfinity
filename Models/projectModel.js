@@ -1,38 +1,41 @@
-// import mongoose from "mongoose";
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js'; // Adjust the import according to your project structure
+import User from './userModel.js'; // Import the User model
 
-// const projectSchema = new mongoose.Schema(
-//   {
-//     name: {
-//       type: String,
-//       required: true,
-//       trim: true,
-//     },
-//     description: {
-//       type: String,
-//       required: true,
-//       trim: true,
-//     },
-//     createdBy: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "User", // Reference to the User model
-//       required: true, // User ID of the project creator
-//     },
-//     assignedTo: [
-//       {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "User", // Reference to the User model
-//       },
-//     ],
-//     deletedAt: {
-//       type: Date, // For soft delete
-//       default: null,
-//     },
-//     isDeleted: {
-//       type: Boolean,
-//       default: false,
-//     },
-//   },
-//   { timestamps: true }
-// );
+const Project = sequelize.define('Project', {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    trim: true,
+  },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    trim: true,
+  },
+  createdBy: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  assignedTo: {
+    type: DataTypes.ARRAY(DataTypes.INTEGER), // Array of user IDs
+    defaultValue: [],
+  },
+  deletedAt: {
+    type: DataTypes.DATE,
+    defaultValue: null,
+  },
+  isDeleted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  timestamps: true,
+  paranoid: true, // Enables soft deletes by using `deletedAt` column
+});
 
-// export default mongoose.model("Project", projectSchema);
+// Define associations
+Project.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+Project.belongsToMany(User, { through: 'ProjectAssignments', as: 'assignees', foreignKey: 'projectId' });
+
+export default Project;

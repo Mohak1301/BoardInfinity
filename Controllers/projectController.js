@@ -1,59 +1,57 @@
-// import projectModel from "../Models/projectModel.js"; // Import your Project model here
-// import userModel from "../Models/userModel.js"; // Import your User model here
+import Project from "../Models/projectModel.js"; // Import your Project model here
+import User from "../Models/userModel.js"; // Import your User model here
+import  ProjectSchema  from "../Validations/projectValidation.js";
 
-// // Create Project Controller
-// export const createProjectController = async (req, res) => {
-//   try {
-//     const { name, description, assignedTo } = req.body;
+// Create Project Controller
+export const createProjectController = async (req, res) => {
+  try {
+    // Validate request body
+    await ProjectSchema.validateAsync(req.body);
 
-//     // Validations
-//     if (!name) {
-//       return res.status(400).send({ message: "Project name is required" });
-//     }
-//     if (!description) {
-//       return res.status(400).send({ message: "Project description is required" });
-//     }
-//     if (!Array.isArray(assignedTo)) {
-//       return res.status(400).send({ message: "AssignedTo must be an array of user IDs" });
-//     }
+    const { name, description, assignedTo } = req.body;
 
-//     // Check if a project with the same name already exists
-//     const existingProject = await projectModel.findOne({ name });
-//     if (existingProject) {
-//       return res.status(400).send({ message: "A project with this name already exists" });
-//     }
+    // Check if a project with the same name already exists
+    const existingProject = await Project.findOne({ where: { name } });
+    if (existingProject) {
+      return res.status(400).send({ message: "A project with this name already exists" });
+    }
 
-//     // Ensure all assignedTo user IDs exist in the database
-//     const usersExist = await userModel.find({ _id: { $in: assignedTo } });
-//     if (usersExist.length !== assignedTo.length) {
-//       return res.status(400).send({ message: "One or more assigned users do not exist" });
-//     }
+    // Ensure all assignedTo user IDs exist in the database
+    const usersExist = await User.findAll({ where: { id: assignedTo } });
+    if (usersExist.length !== assignedTo.length) {
+      return res.status(400).send({ message: "One or more assigned users do not exist" });
+    }
 
-//     // Create a new project
-//     const project = new projectModel({
-//       name,
-//       description,
-//       createdBy: req.user._id, // Use the user ID from the middleware
-//       assignedTo, // Array of User IDs referencing the User model
-//     });
+    // Create a new project
+    const project = await Project.create({
+      name,
+      description,
+      createdBy: req.user._id, // Use the user ID from the middleware
+      assignedTo, // Array of User IDs
+    });
 
-//     // Save the project to the database
-//     await project.save();
+    res.status(201).send({
+      success: true,
+      message: "Project created successfully",
+      project,
+    });
+  } catch (error) {
+    if (error.isJoi) {
+      return res.status(400).send({
+        success: false,
+        message: "Validation error",
+        details: error.details.map((detail) => detail.message),
+      });
+    }
 
-//     res.status(201).send({
-//       success: true,
-//       message: "Project created successfully",
-//       project,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error in creating project",
-//       error,
-//     });
-//   }
-// };
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error in creating project",
+      error,
+    });
+  }
+};
 
 // export const getProjectsController = async (req, res) => {
 //   try {

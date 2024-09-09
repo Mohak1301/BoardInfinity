@@ -4,9 +4,9 @@ import {
   getUsersController,
   getUsersByIdController,
   updateUsersController,
-  // softDeleteUserController,
-  // permanentDeleteUserController,
-  // restoreUserController,
+  softDeleteUserController,
+  permanentDeleteUserController,
+  restoreUserController,
   // assignRoleController
 } from "../Controllers/managementController.js";
 import {
@@ -25,14 +25,14 @@ router.get("/:id", requireSignIn, getUsersByIdController);
 router.put("/:id", requireSignIn, isAdmin, updateUsersController);
 
 // // Soft Delete User
-// router.delete("/:id", requireSignIn, isAdmin, softDeleteUserController);
+router.delete("/:id", requireSignIn, isAdmin, softDeleteUserController);
 
 // // Permanent Delete User
-// router.delete("/permanent/:id",requireSignIn,isAdmin,permanentDeleteUserController);
+router.delete("/permanent/:id",requireSignIn,isAdmin,permanentDeleteUserController);
 
 
 // // Restore User
-// router.patch("/restore/:id", requireSignIn, isAdmin, restoreUserController);
+router.patch("/restore/:id", requireSignIn, isAdmin, restoreUserController);
 
 // router.post("/:id/assign-role",requireSignIn,isAdmin,assignRoleController)
 

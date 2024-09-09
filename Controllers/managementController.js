@@ -107,93 +107,111 @@ export const updateUsersController = async (req, res) => {
   }
 };
 
-// export const softDeleteUserController = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const user = await userModel.findByIdAndUpdate(
-//       id,
-//       { isDeleted: true },
-//       { new: true }
-//     );
 
-//     if (!user) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
 
-//     res.status(200).send({
-//       success: true,
-//       message: "User soft deleted successfully",
-//       user,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error while soft deleting user",
-//       error,
-//     });
-//   }
-// };
+export const softDeleteUserController = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-// export const permanentDeleteUserController = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const user = await userModel.findByIdAndDelete(id);
+    // Find the user by ID
+    const user = await User.findByPk(id);
+    
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-//     if (!user) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
+    // Update the user's isDeleted status
+    const updatedUser = await user.update({ isDeleted: true });
 
-//     res.status(200).send({
-//       success: true,
-//       message: "User permanently deleted successfully",
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error while permanently deleting user",
-//       error,
-//     });
-//   }
-// };
+    res.status(200).send({
+      success: true,
+      message: "User soft deleted successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while soft deleting user",
+      error,
+    });
+  }
+};
 
-// export const restoreUserController = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const user = await userModel.findByIdAndUpdate(
-//       id,
-//       { isDeleted: false },
-//       { new: true }
-//     );
 
-//     if (!user) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "User not found or already active",
-//       });
-//     }
 
-//     res.status(200).send({
-//       success: true,
-//       message: "User restored successfully",
-//       user,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error while restoring user",
-//       error,
-//     });
-//   }
-// };
+export const permanentDeleteUserController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Permanently delete the user by ID
+    const result = await User.destroy({
+      where: { id },
+    });
+
+    if (result === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "User permanently deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while permanently deleting user",
+      error,
+    });
+  }
+};
+
+
+
+
+export const restoreUserController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Restore the user by setting isDeleted to false
+    const [updated] = await User.update(
+      { isDeleted: false },
+      { where: { id }, returning: true }
+    );
+
+    // Check if any row was updated
+    if (updated === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found or already active",
+      });
+    }
+
+    // Retrieve the updated user
+    const user = await User.findByPk(id);
+    
+    res.status(200).send({
+      success: true,
+      message: "User restored successfully",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while restoring user",
+      error,
+    });
+  }
+};
+
 
 
 

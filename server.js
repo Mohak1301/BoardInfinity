@@ -1,13 +1,11 @@
-// server.js
-
 import express from "express";
 import colors from "colors";
 import dotenv from "dotenv";
 import sequelize from "./config/db.js";
 import authRoutes from "./Routes/authRoutes.js"; // Adjust path if necessary
-import managementRoutes from "./Routes/managementRoutes.js"
+import managementRoutes from "./Routes/managementRoutes.js";
+import projectRoutes from "./Routes/projectRoutes.js";
 import cors from "cors";
-
 
 // Configure environment variables
 dotenv.config();
@@ -20,7 +18,18 @@ app.use(express.json());
 
 // API routes
 app.use("/auth", authRoutes);
-app.use("/users",managementRoutes);
+app.use("/users", managementRoutes);
+app.use("/project", projectRoutes);
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send({
+    success: false,
+    message: "Something went wrong!",
+    error: err.message,
+  });
+});
 
 // Database connection and synchronization
 (async () => {
