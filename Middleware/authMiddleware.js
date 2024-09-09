@@ -1,11 +1,13 @@
 import JWT from "jsonwebtoken";
-import userModel from "../Models/userModel.js";
+import User from "../Models/userModel.js"; // Import Sequelize User model
 
 // Middleware to verify JWT and attach user details to req.user
 export const requireSignIn = async (req, res, next) => {
   try {
     // Extract token from Authorization header
     const token = req.headers.authorization;
+    console.log(token)
+    
 
     if (!token) {
       return res.status(401).send({ message: "Unauthorized: No token provided" });
@@ -13,20 +15,22 @@ export const requireSignIn = async (req, res, next) => {
 
     // Verify the token using JWT_SECRETKEY
     const decode = JWT.verify(token, process.env.JWT_SECRETKEY);
+    console.log(decode.id)
 
     // Find the user by ID from the decoded token
-    const user = await userModel.findById(decode._id);
+    const user = await User.findByPk(decode.id); // Use Sequelize's `findByPk` method to find the user by primary key
+    console.log(user)
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
 
     // Attach the user's ID and roleId to the request object for further use
     req.user = {
-      _id: user._id,
+      _id: user.id, // Sequelize uses `id` as the default primary key field
       roleId: user.roleId, // Assuming roleId is a string like "Admin", "Manager", etc.
     };
 
-    console.log(`Authenticated User: ${user._id} with Role: ${user.roleId}`); // Log for debugging
+    
 
     next(); // Proceed to the next middleware or route handler
   } catch (error) {

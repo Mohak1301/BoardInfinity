@@ -1,154 +1,157 @@
-import userModel from "../Models/userModel.js"; // Ensure this import points to your updated User model file
-// import roleModel from "../Models/roleModel.js"; // Ensure this import points to your Role model file
-import {hashPassword,comparePassword} from "../Helper/authHelper.js"
+import User from "../Models/userModel.js"; // Update import path if necessary
 import JWT from "jsonwebtoken";
+import { hashPassword ,comparePassword} from "../Helper/authHelper.js"; // Make sure this path is correct
+import { signupSchema,loginSchema} from "../Validations/authValidation.js";
 
 
-export const signupController = async (req, res) => {
+export const signupAdminController = async (req, res) => {
   try {
+    // Validate request body
+    await signupSchema.validateAsync(req.body); // Throws an error if validation fails
+
     const { username, name, email, password, phone, address, role } = req.body;
 
-    // Check if role is Admin and if there's already an Admin user
-    if (role === "Admin") {
-      const existingAdmin = await userModel.findOne({ roleId: "Admin" });
-      
-
-      if (existingAdmin) {
-        return res.status(400).send({ error: "Only one admin can exist." });
-      }
+    // Check if the role is "admin"
+    if (role !== "Admin") {
+      return res.status(403).send({
+        success: false,
+        message: "Access denied. Only admins can register new users.",
+      });
     }
 
-    // Validations
-    if (!username) return res.status(400).send({ error: "Username is Required" });
-    if (!name) return res.status(400).send({ error: "Name is Required" });
-    if (!email) return res.status(400).send({ message: "Email is Required" });
-    if (!password) return res.status(400).send({ message: "Password is Required" });
-    if (!phone) return res.status(400).send({ message: "Phone no is Required" });
-    if (!address) return res.status(400).send({ message: "Address is Required" });
-    
-
-    // Check user
-    const existingUser = await userModel.findOne({ email });
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
         message: "Already registered. Please login.",
       });
     }
 
-    // Register user
+    // Hash password
     const hashedPassword = await hashPassword(password); // Assuming hashPassword is a utility function you've defined
 
-    // Get Role ID
-  
-
-    // Save
-    const user = await new userModel({
+    // Save new user to the database
+    const user = await User.create({
       username,
       name,
       email,
       phone,
       address,
       password: hashedPassword,
-   
       roleId: role,
-    }).save();
+    });
 
     res.status(201).send({
       success: true,
       message: "User registered successfully",
-      user,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        roleId: user.roleId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     });
   } catch (error) {
-    console.log(error);
+    // Handle validation errors separately
+    if (error.isJoi) {
+      return res.status(400).send({
+        success: false,
+        message: "Validation error",
+        details: error.details.map((detail) => detail.message), // Provide specific validation errors
+      });
+    }
+
+    console.error("Error in registration:", error);
     res.status(500).send({
       success: false,
       message: "Error in registration",
-      error,
+      error: error.message,
     });
   }
 };
 
 
 
+
 export const loginController = async (req, res) => {
   try {
+    // Validate request body using Joi
+    await loginSchema.validateAsync(req.body); // Throws an error if validation fails
+
     const { email, password } = req.body;
-    //validation
-    if (!email || !password) {
-      return res.status(404).send({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-    //check user
-    
-    const user = await userModel.findOne({ email });
+
+    // Check if the user exists in the database
+    const user = await User.findOne({ where: { email } }); // Ensure you're importing the correct User model
     if (!user) {
       return res.status(404).send({
         success: false,
-        message: "Email is not registerd",
+        message: "Email is not registered",
       });
     }
-  
-    const match = await comparePassword(password, user.password);
+
+    // Compare passwords
+    const match = await comparePassword(password, user.password); // Assuming comparePassword is a utility function
     if (!match) {
       return res.status(200).send({
         success: false,
         message: "Invalid Password",
       });
     }
-    //token
 
-    const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRETKEY, {
+    // Token generation
+    const token = JWT.sign({ id: user.id }, process.env.JWT_SECRETKEY, {
       expiresIn: "7d",
     });
-    // console.log(token)
     
     res.status(200).send({
       success: true,
-      message: "login successfully",
+      message: "Login successfully",
       user: {
-        _id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        adddress: user.address,
-        role: user.role,
+        address: user.address,
+        role: user.roleId,
       },
       token,
     });
   } catch (error) {
-    console.log(error);
+    if (error.isJoi) {
+      // Log the validation error
+      console.log("Validation error:", error.details);
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        details: error.details.map((detail) => detail.message), // Provide specific validation errors
+      });
+    }
+
+    console.log("Error in login:", error);
     res.status(500).send({
       success: false,
       message: "Error in login",
-      error,
+      error: error.message, // Simplify the error message
     });
   }
 };
 
+
 export const registerController = async (req, res) => {
   try {
-    const { username, name, email, password, phone, address,  role } = req.body;
+    await signupSchema.validateAsync(req.body); // Throws an error if validation fails
+    const { username, name, email, password, phone, address, role } = req.body;
 
   
-    
-
-    // Validations
-    if (!username) return res.status(400).send({ error: "Username is Required" });
-    if (!name) return res.status(400).send({ error: "Name is Required" });
-    if (!email) return res.status(400).send({ message: "Email is Required" });
-    if (!password) return res.status(400).send({ message: "Password is Required" });
-    if (!phone) return res.status(400).send({ message: "Phone no is Required" });
-    if (!address) return res.status(400).send({ message: "Address is Required" });
-    if (!role) return res.status(400).send({ message: "Role is Required"});
-
-    
-
-    // Check user
-    const existingUser = await userModel.findOne({ email });
-    if(role !=="Manager" && role!=="Employee") {
+    // Check user existence
+    const existingUser = await User.findOne({ where: { email } });
+    if (role !== "Manager" && role !== "Employee") {
       return res.status(400).send({ message: "Invalid role" });
     }
     if (existingUser) {
@@ -159,22 +162,18 @@ export const registerController = async (req, res) => {
     }
 
     // Register user
-    const hashedPassword = await hashPassword(password); // Assuming hashPassword is a utility function you've defined
+    const hashedPassword = await hashPassword(password);
 
-    // Get Role ID
-  
-
-    // Save
-    const user = await new userModel({
+    // Save new user
+    const user = await User.create({
       username,
       name,
       email,
       phone,
       address,
       password: hashedPassword,
-   
       roleId: role,
-    }).save();
+    });
 
     res.status(201).send({
       success: true,
@@ -182,7 +181,7 @@ export const registerController = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error in registration:", error);
     res.status(500).send({
       success: false,
       message: "Error in registration",
@@ -190,6 +189,3 @@ export const registerController = async (req, res) => {
     });
   }
 };
-
-
-

@@ -1,12 +1,15 @@
-import mongoose from "mongoose";
-import colors from "colors";
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGOURL);
-    console.log("Database connected".bgGreen)
-  } catch (error) {
-    console.log(`Errro in Mongodb ${error}`.bgRed.white);
-  }
-};
+import { Sequelize } from "sequelize";
+import dotenv from "dotenv";
 
-export default connectDB;
+// Load environment variables from .env file
+dotenv.config();
+
+// Initialize Sequelize instance with PostgreSQL connection details
+const sequelize = new Sequelize(process.env.DATABASE_NAME, process.env.DATABASE_USERNAME, process.env.DATABASE_PASSWORD, {
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  dialect: "postgres",
+  logging: false, // Set to true to see SQL queries for debugging
+});
+
+export default sequelize;
