@@ -1,83 +1,111 @@
-// import userModel from "../Models/userModel.js";
+import User from "../Models/userModel.js"; // Import Sequelize User model
+import { updateUserSchema } from "../Validations/updateuserValidation.js";
 
-// export const getUsersController = async (req, res) => {
-//   try {
-//     const users = await userModel
-//       .find({ isDeleted: false })
-//       .populate("name")
-//       .populate("email")
-//       .populate("phone")
-//       .populate("address");
-//     res.status(200).send({
-//       success: true,
-//       counTotal: users.length,
-//       message: "All Users ",
-//       users,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(400).send({
-//       success: false,
-//       message: "Error while Getting users",
-//       error,
-//     });
-//   }
-// };
+export const getUsersController = async (req, res) => {
+  try {
+    // Fetch users who are not deleted
+    const users = await User.findAll({
+      where: { isDeleted: false },
+      attributes: ["id", "username", "name", "email", "phone", "address"], // Adjust attributes as needed
+    });
 
-// export const getUsersByIdController = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const user = await userModel.findById({ id, isDeleted: false });
-//     res.status(200).send({
-//       success: true,
-//       message: "User Found ",
-//       user,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "No User Found",
-//       error,
-//     });
-//   }
-// };
+    res.status(200).send({
+      success: true,
+      countTotal: users.length,
+      message: "All Users",
+      users,
+    });
+  } catch (error) {
+    console.log("Error while getting users:", error);
+    res.status(400).send({
+      success: false,
+      message: "Error while getting users",
+      error: error.message, // Provide concise error message
+    });
+  }
+};
 
-// export const updateUsersController = async (req, res) => {
-//   try {
-//     // Parse request parameters
-//     const userId = req.params.id;
-//     const updateUser = req.body;
 
-//     // Find the course by ID
-//     const user = await userModel.findById({ userId, isDeleted: false });
-//     if (!user) {
-//       return res
-//         .status(404)
-//         .send({ success: false, message: "User not found." });
-//     }
 
-//     // Update course details in the database
-//     const updatedUser = await userModel.findByIdAndUpdate(userId, updateUser, {
-//       new: true,
-//     });
+export const getUsersByIdController = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     // Return success message along with the updated course
-//     return res.status(200).send({
-//       success: true,
-//       message: "User details updated successfully.",
-//       user: updatedUser,
-//     });
-//   } catch (error) {
-//     // Handle errors
-//     console.error(error);
-//     return res.status(500).send({
-//       success: false,
-//       message: "Error updating user details.",
-//       error,
-//     });
-//   }
-// };
+    // Fetch user by ID who is not deleted
+    const user = await User.findOne({
+      where: { id, isDeleted: false },
+      attributes: ["id", "username", "name", "email", "phone", "address"], // Adjust attributes as needed
+    });
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "User Found",
+      user,
+    });
+  } catch (error) {
+    console.log("Error while getting user by ID:", error);
+    res.status(500).send({
+      success: false,
+      message: "Error while getting user",
+      error: error.message, // Provide concise error message
+    });
+  }
+};
+
+export const updateUsersController = async (req, res) => {
+  try {
+    // Parse request parameters
+    const userId = req.params.id;
+    const updateUser = req.body;
+
+    // Validate request body
+    const { error } = updateUserSchema.validate(updateUser);
+    if (error) {
+      return res.status(400).send({
+        success: false,
+        message: "Validation error",
+        details: error.details.map((detail) => detail.message), // Provide specific validation errors
+      });
+    }
+
+    // Find the user by ID who is not deleted
+    const user = await User.findOne({
+      where: { id: userId, isDeleted: false },
+    });
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Update user details in the database
+    await user.update(updateUser); // Use Sequelize's `update` method for updating user
+
+    // Return success message along with the updated user
+    return res.status(200).send({
+      success: true,
+      message: "User details updated successfully.",
+      user,
+    });
+  } catch (error) {
+    // Handle errors
+    console.error("Error updating user details:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error updating user details.",
+      error: error.message, // Provide concise error message
+    });
+  }
+};
 
 // export const softDeleteUserController = async (req, res) => {
 //   try {
