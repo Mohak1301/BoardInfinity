@@ -1,6 +1,7 @@
 
 import  ProjectSchema  from "../Validations/projectValidation.js";
 import { Project, User, ProjectUser } from '../Models/associations.js'; 
+import { Op } from 'sequelize';
 
 // Create Project Controller
 export const createProjectController = async (req, res) => {
@@ -58,15 +59,18 @@ export const createProjectController = async (req, res) => {
 export const getProjectsController = async (req, res) => {
   try {
     const projects = await Project.findAll({
+      where: {
+        isDeleted: false, // Ensure only non-deleted projects are retrieved
+      },
       include: [
         {
           model: User,
-          as: 'creator',
+          as: 'creator', // Assuming 'createdBy' is aliased as 'creator'
           attributes: ['id', 'name', 'email'],
         },
         {
           model: User,
-          as: 'assignedUsers',
+          as: 'assignedUsers', // Assuming 'assignedTo' is aliased as 'assignedUsers'
           attributes: ['id', 'name', 'email'],
           through: {
             attributes: [], // Don't include attributes from the join table
@@ -93,13 +97,17 @@ export const getProjectsController = async (req, res) => {
 
 
 
+
 export const getProjectByIdController = async (req, res) => {
   try {
     const { id } = req.params; // Extract project ID from request parameters
 
     // Find the project by ID and include associated users
     const project = await Project.findOne({
-      where: { id, isDeleted: false },
+      where: {
+        id,
+        isDeleted: false, // Ensure the project is not soft-deleted
+      },
       include: [
         {
           model: User,
@@ -140,6 +148,7 @@ export const getProjectByIdController = async (req, res) => {
     });
   }
 };
+
 
 
 
@@ -246,72 +255,88 @@ export const softDeleteProjectController = async (req, res) => {
 
 
 // // Permanent Delete Project Controller
-// export const permanentDeleteProjectController = async (req, res) => {
-//   try {
-//     const { id } = req.params; // Extract project ID from request parameters
+export const permanentDeleteProjectController = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract project ID from request parameters
 
-//     // Permanently delete the project by its ID
-//     const project = await projectModel.findByIdAndDelete(id);
+    // Permanently delete the project by its ID
+    const deletedCount = await Project.destroy({
+      where: {
+        id: id,
+        isDeleted: true // Ensure the project is marked as deleted before attempting permanent deletion
+      }
+    });
 
-//     // If the project is not found
-//     if (!project) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "Project not found",
-//       });
-//     }
+    // If no rows were affected, the project was not found
+    if (deletedCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Project not found or not marked as deleted",
+      });
+    }
 
-//     // Return a success response
-//     res.status(200).send({
-//       success: true,
-//       message: "Project permanently deleted successfully",
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error while permanently deleting project",
-//       error,
-//     });
-//   }
-// };
-
-
+    // Return a success response
+    res.status(200).send({
+      success: true,
+      message: "Project permanently deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while permanently deleting project",
+      error,
+    });
+  }
+};
 
 
 
-// // Restore Project Controller
-// export const restoreProjectController = async (req, res) => {
-//   try {
-//     const { id } = req.params; // Extract project ID from request parameters
+// Restore Project Controller
+export const restoreProjectController = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract project ID from request parameters
 
-//     // Restore the project by setting `isDeleted` to false
-//     const project = await projectModel.findByIdAndUpdate(
-//       id,
-//       { isDeleted: false, deletedAt: null }, // Also reset the `deletedAt` field to null
-//       { new: true } // Return the updated project document
-//     );
+    // Find the project by ID to check if it exists and is soft-deleted
+    const project = await Project.findOne({
+      where: { 
+        id,
+        deletedAt: {
+          [Op.not]: null // This checks if the project is soft-deleted
+        }
+      }
+    });
 
-//     // If project is not found or is already active
-//     if (!project) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "Project not found or already active",
-//       });
-//     }
+    // If the project is not found or not soft-deleted
+    if (!project) {
+      return res.status(404).send({
+        success: false,
+        message: "Project not found or not soft-deleted",
+      });
+    }
 
-//     // Return a success response
-//     res.status(200).send({
-//       success: true,
-//       message: "Project restored successfully",
-//       project,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error while restoring project",
-//       error,
-//     });
-//   }
-// };
+    // Restore the project by setting `deletedAt` to null and `isDeleted` to false
+    const restoredProject = await Project.update(
+      { isDeleted: false, deletedAt: null },
+      { 
+        where: { id },
+        returning: true, // This will return the updated project
+        plain: true // Ensures a single object is returned
+      }
+    );
+
+    // Return a success response with the updated project details
+    res.status(200).send({
+      success: true,
+      message: "Project restored successfully",
+      project: restoredProject[1] // `restoredProject[1]` contains the updated project details
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while restoring project",
+      error,
+    });
+  }
+};

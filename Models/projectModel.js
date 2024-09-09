@@ -33,7 +33,7 @@ const Project = sequelize.define(
   },
   {
     timestamps: true,
-    paranoid: true,
+    paranoid: false,
     tableName: 'projects',
   }
 );
