@@ -217,46 +217,94 @@ export const restoreUserController = async (req, res) => {
 
 
 
-// // Controller to assign a role to a user
-// export const assignRoleController = async (req, res) => {
-//   try {
-//     const { id } = req.params; // User ID from the URL parameter
-//     const { roleId } = req.body; // Role ID to assign from the request body
 
-//     // Validate role input
-//     if (!roleId || !['Admin', 'Manager', 'Employee'].includes(roleId)) {
-//       return res.status(400).send({
-//         success: false,
-//         message: "Invalid role provided. Choose between 'Admin', 'Manager', or 'Employee'.",
-//       });
-//     }
 
-//     // Find the user by ID and update their roleId
-//     const user = await userModel.findByIdAndUpdate(
-//       id,
-//       { roleId },
-//       { new: true } // Return the updated document
-//     );
+export const assignRoleController = async (req, res) => {
+  try {
+    const { id } = req.params; // User ID from the URL parameter
+    const { roleId } = req.body; // Role ID to assign from the request body
 
-//     if (!user) {
-//       return res.status(404).send({
-//         success: false,
-//         message: 'User not found.',
-//       });
-//     }
+    // Validate role input
+    if (!roleId || !['Admin', 'Manager', 'Employee'].includes(roleId)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid role provided. Choose between 'Admin', 'Manager', or 'Employee'.",
+      });
+    }
 
-//     res.status(200).send({
-//       success: true,
-//       message: 'Role assigned successfully.',
-//       user,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send({
-//       success: false,
-//       message: 'Error while assigning role to the user.',
-//       error,
-//     });
-//   }
-// };
+    // Find the user by ID and update their roleId
+    const [updatedRows] = await User.update(
+      { roleId }, // Set the new roleId
+      { 
+        where: { id }, // Find the user by ID
+        returning: true, // Return the updated user
+        plain: true // Return a single object instead of an array
+      }
+    );
 
+    // If no rows were updated, the user was not found
+    if (updatedRows === 0) {
+      return res.status(404).send({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    // Fetch the updated user details
+    const updatedUser = await User.findByPk(id);
+
+    res.status(200).send({
+      success: true,
+      message: 'Role assigned successfully.',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      success: false,
+      message: 'Error while assigning role to the user.',
+      error,
+    });
+  }
+};
+
+
+
+export const revokeRoleController = async (req, res) => {
+  try {
+    const { id } = req.params; // User ID from the URL parameter
+
+    // Find the user by ID
+    const user = await User.findByPk(id);
+
+    // If the user is not found
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    // Revoke the user's role by setting roleId to null or a default value
+    await User.update(
+      { roleId: "Employee" }, // Clear the roleId
+      { where: { id } } // Find the user by ID
+    );
+
+    // Fetch the updated user details
+    const updatedUser = await User.findByPk(id);
+
+    res.status(200).send({
+      success: true,
+      message: 'Role revoked successfully.',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      success: false,
+      message: 'Error while revoking role from the user.',
+      error,
+    });
+  }
+};

@@ -7,8 +7,9 @@ import {
   softDeleteUserController,
   permanentDeleteUserController,
   restoreUserController,
-  // assignRoleController
-} from "../Controllers/managementController.js";
+  assignRoleController,
+  revokeRoleController
+} from "../Controllers/usermanagementController.js"
 import {
   isAdmin,
   isAdminorManager,
@@ -34,9 +35,9 @@ router.delete("/permanent/:id",requireSignIn,isAdmin,permanentDeleteUserControll
 // // Restore User
 router.patch("/restore/:id", requireSignIn, isAdmin, restoreUserController);
 
-// router.post("/:id/assign-role",requireSignIn,isAdmin,assignRoleController)
+router.post("/:id/assign-role",requireSignIn,isAdmin,assignRoleController)
 
-// router.post("/:id/assign-role", requireSignIn, isAdmin, assignRoleController);
+router.post("/:id/revoke-role", requireSignIn, isAdmin, revokeRoleController);
 
 
 

@@ -1,6 +1,6 @@
 import User from './userModel.js';
 import Project from './projectModel.js';
-import ProjectUser from './projectuserModel.js';
+import ProjectUser from './projectuserModel.js'
 
 // Define relationships
 Project.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });

@@ -36,6 +36,7 @@ const User = sequelize.define(
       validate: {
         isNumeric: true,
       },
+     unique:true,
     },
     address: {
       type: DataTypes.JSON,

@@ -3,7 +3,7 @@ import colors from "colors";
 import dotenv from "dotenv";
 import sequelize from "./config/db.js";
 import authRoutes from "./Routes/authRoutes.js"; // Adjust path if necessary
-import managementRoutes from "./Routes/managementRoutes.js";
+import managementRoutes from "./Routes/usermanagementRoutes.js";
 import projectRoutes from "./Routes/projectRoutes.js";
 import cors from "cors";
 
