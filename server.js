@@ -35,6 +35,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+
 // Database connection and synchronization
 (async () => {
   try {
@@ -51,6 +52,9 @@ app.use((err, req, res, next) => {
   }
 })();
 
+app.use('/',(req,res)=>{
+  res.send("<h1>Welcome to the API</h1>")
+})
 // Server setup
 const PORT = process.env.PORT || 5300; // Use environment variable for PORT if provided
 app.listen(PORT, () => {
