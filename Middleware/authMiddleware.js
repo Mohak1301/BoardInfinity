@@ -6,7 +6,7 @@ export const requireSignIn = async (req, res, next) => {
   try {
     // Extract token from Authorization header
     const token = req.headers.authorization;
-    console.log(token)
+    // console.log(token)
     
 
     if (!token) {
@@ -15,11 +15,11 @@ export const requireSignIn = async (req, res, next) => {
 
     // Verify the token using JWT_SECRETKEY
     const decode = JWT.verify(token, process.env.JWT_SECRETKEY);
-    console.log(decode.id)
+    // console.log(decode.id)
 
     // Find the user by ID from the decoded token
     const user = await User.findByPk(decode.id); // Use Sequelize's `findByPk` method to find the user by primary key
-    console.log(user)
+    // console.log(user)
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }

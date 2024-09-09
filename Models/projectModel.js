@@ -1,41 +1,41 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js'; // Adjust the import according to your project structure
-import User from './userModel.js'; // Import the User model
+import  sequelize  from '../config/db.js';
 
-const Project = sequelize.define('Project', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    trim: true,
-  },
-  description: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    trim: true,
-  },
-  createdBy: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  assignedTo: {
-    type: DataTypes.ARRAY(DataTypes.INTEGER), // Array of user IDs
-    defaultValue: [],
-  },
-  deletedAt: {
-    type: DataTypes.DATE,
-    defaultValue: null,
-  },
-  isDeleted: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-}, {
-  timestamps: true,
-  paranoid: true, // Enables soft deletes by using `deletedAt` column
-});
 
-// Define associations
-Project.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
-Project.belongsToMany(User, { through: 'ProjectAssignments', as: 'assignees', foreignKey: 'projectId' });
+const Project = sequelize.define(
+  'Project',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    createdBy: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      defaultValue: null,
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  },
+  {
+    timestamps: true,
+    paranoid: true,
+    tableName: 'projects',
+  }
+);
 
 export default Project;

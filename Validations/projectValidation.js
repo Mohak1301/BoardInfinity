@@ -1,5 +1,8 @@
 import Joi from "joi";
 
+// Define a UUID pattern for validation
+const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 const ProjectSchema = Joi.object({
   name: Joi.string().min(3).max(100).required().messages({
     "string.base": `"name" should be a type of 'text'`,
@@ -13,10 +16,9 @@ const ProjectSchema = Joi.object({
     "string.max": `"description" should have a maximum length of {#limit}`,
   }),
   assignedTo: Joi.array().items(
-    Joi.number().integer().positive().messages({
-      "number.base": `"assignedTo" should contain valid numbers`,
-      "number.integer": `"assignedTo" should be an integer`,
-      "number.positive": `"assignedTo" should be a positive number`,
+    Joi.string().pattern(uuidPattern).messages({
+      "string.base": `"assignedTo" should contain valid UUID strings`,
+      "string.pattern.base": `"assignedTo" should be a valid UUID`,
     })
   ).optional().messages({
     "array.base": `"assignedTo" should be an array`,

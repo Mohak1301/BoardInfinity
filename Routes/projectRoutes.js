@@ -7,8 +7,8 @@ import {
 } from "../Middleware/authMiddleware.js";
 import {
   createProjectController,
-  // getProjectsController,
-  // getProjectByIdController,
+  getProjectsController,
+  getProjectByIdController,
   // updateProjectController,
   // softDeleteProjectController,
   // permanentDeleteProjectController,
@@ -19,8 +19,8 @@ import {
 const router = express.Router();
 
 router.post("/", requireSignIn, isAdmin, createProjectController);
-// router.get("/", requireSignIn, getProjectsController);
-// router.get("/:id", requireSignIn, getProjectByIdController);
+router.get("/", requireSignIn, getProjectsController);
+router.get("/:id", requireSignIn, getProjectByIdController);
 // router.put("/:id", requireSignIn, isAdmin, updateProjectController);
 // router.delete("/:id", requireSignIn, isAdmin, softDeleteProjectController);
 // router.delete("/permanent/:id", requireSignIn, isAdmin, permanentDeleteProjectController);

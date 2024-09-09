@@ -1,6 +1,6 @@
-import Project from "../Models/projectModel.js"; // Import your Project model here
-import User from "../Models/userModel.js"; // Import your User model here
+
 import  ProjectSchema  from "../Validations/projectValidation.js";
+import { Project, User, ProjectUser } from '../Models/associations.js'; 
 
 // Create Project Controller
 export const createProjectController = async (req, res) => {
@@ -44,7 +44,7 @@ export const createProjectController = async (req, res) => {
       });
     }
 
-    console.log(error);
+    // console.log(error);
     res.status(500).send({
       success: false,
       message: "Error in creating project",
@@ -53,92 +53,93 @@ export const createProjectController = async (req, res) => {
   }
 };
 
-// export const getProjectsController = async (req, res) => {
-//   try {
-//     const userRole = req.user.roleId; // Assuming roleId stores roles like "Admin", "Manager", "Employee"
-//     console.log("Role:", userRole);
 
-//     const userId = req.user._id; // User ID from the authenticated user middleware
 
-//     let projects;
+export const getProjectsController = async (req, res) => {
+  try {
+    const projects = await Project.findAll({
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          model: User,
+          as: 'assignedUsers',
+          attributes: ['id', 'name', 'email'],
+          through: {
+            attributes: [], // Don't include attributes from the join table
+          },
+        },
+      ],
+    });
 
-//     // Retrieve projects based on user role
-//     if (userRole === "Admin") {
-//       // Admin: Retrieve all projects
-//       projects = await projectModel.find().populate('createdBy', 'name email').populate('assignedTo', 'name email');
-//     } else if (userRole === "Manager") {
-//       // Manager: Retrieve projects created by them or assigned to them
-//       projects = await projectModel
-//         .find({
-//           $or: [{ createdBy: userId }, { assignedTo: userId }],
-//         })
-//         .populate('createdBy', 'name email')
-//         .populate('assignedTo', 'name email');
-//     } else if (userRole === "Employee") {
-//       // Employee: Retrieve only projects assigned to them
-//       projects = await projectModel
-//         .find({ assignedTo: userId })
-//         .populate('createdBy', 'name email')
-//         .populate('assignedTo', 'name email');
-//     } else {
-//       // If the role is unknown, return an error
-//       return res.status(403).send({
-//         success: false,
-//         message: "Access Denied: Invalid Role",
-//       });
-//     }
-
-//     // Send response with the list of projects
-//     res.status(200).send({
-//       success: true,
-//       message: "Projects retrieved successfully",
-//       projects,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error while retrieving projects",
-//       error,
-//     });
-//   }
-// };
+    res.status(200).send({
+      success: true,
+      message: "Projects retrieved successfully",
+      projects,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error while retrieving projects",
+      error,
+    });
+  }
+};
 
 
 
-// export const getProjectByIdController = async (req, res) => {
-//   try {
-//     const { id } = req.params; // Extract project ID from request parameters
 
-//     // Find the project by ID and ensure it is not deleted
-//     const project = await projectModel
-//       .findOne({ _id: id, isDeleted: false }) // Check for soft delete status
-//       .populate('createdBy', 'name email') // Populate createdBy field with user details
-//       .populate('assignedTo', 'name email'); // Populate assignedTo field with user details
+export const getProjectByIdController = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract project ID from request parameters
 
-//     // If project is not found
-//     if (!project) {
-//       return res.status(404).send({
-//         success: false,
-//         message: 'Project not found',
-//       });
-//     }
+    // Find the project by ID and include associated users
+    const project = await Project.findOne({
+      where: { id, isDeleted: false },
+      include: [
+        {
+          model: User,
+          as: 'creator', // Assuming 'createdBy' is aliased as 'creator'
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          model: User,
+          as: 'assignedUsers', // Assuming 'assignedTo' is aliased as 'assignedUsers'
+          attributes: ['id', 'name', 'email'],
+          through: {
+            attributes: [], // Don't include attributes from the join table
+          },
+        },
+      ],
+    });
 
-//     // Return the project details if found
-//     res.status(200).send({
-//       success: true,
-//       message: 'Project fetched successfully',
-//       project,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: 'Error while fetching project',
-//       error,
-//     });
-//   }
-// };
+    // If project is not found
+    if (!project) {
+      return res.status(404).send({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    // Return the project details if found
+    res.status(200).send({
+      success: true,
+      message: 'Project fetched successfully',
+      project,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: 'Error while fetching project',
+      error,
+    });
+  }
+};
 
 
 

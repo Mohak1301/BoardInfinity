@@ -1,9 +1,14 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
+import  sequelize  from '../config/db.js';
 
 const User = sequelize.define(
   'User',
   {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
     username: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -18,7 +23,7 @@ const User = sequelize.define(
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true, // Validate that the value is a valid email
+        isEmail: true,
       },
     },
     password: {
@@ -29,11 +34,11 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        isNumeric: true, // Validate that the phone is numeric
+        isNumeric: true,
       },
     },
     address: {
-      type: DataTypes.JSON, // JSON type allows for structured data
+      type: DataTypes.JSON,
       allowNull: false,
     },
     roleId: {
@@ -46,8 +51,8 @@ const User = sequelize.define(
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields
-    tableName: 'users', // Explicit table name for consistency
+    timestamps: true,
+    tableName: 'users',
   }
 );
 
