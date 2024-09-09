@@ -5,6 +5,7 @@ import sequelize from "./config/db.js";
 import authRoutes from "./Routes/authRoutes.js"; // Adjust path if necessary
 import managementRoutes from "./Routes/usermanagementRoutes.js";
 import projectRoutes from "./Routes/projectRoutes.js";
+import auditRoutes from "./Routes/auditRoutes.js";
 import cors from "cors";
 
 // Configure environment variables
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/users", managementRoutes);
 app.use("/project", projectRoutes);
+app.use("/audit-logs",auditRoutes);
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {

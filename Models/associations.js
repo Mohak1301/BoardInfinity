@@ -1,6 +1,7 @@
 import User from './userModel.js';
 import Project from './projectModel.js';
-import ProjectUser from './projectuserModel.js'
+import ProjectUser from './projectuserModel.js';
+import AuditLog from './auditlogModel.js';
 
 // Define relationships
 Project.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
@@ -18,4 +19,7 @@ User.belongsToMany(Project, {
   foreignKey: 'userId',
 });
 
-export { User, Project, ProjectUser };
+AuditLog.belongsTo(User, { foreignKey: 'performedBy', as: 'performer' });
+User.hasMany(AuditLog, { foreignKey: 'performedBy', as: 'auditLogs' });
+
+export { User, Project, ProjectUser, AuditLog };
