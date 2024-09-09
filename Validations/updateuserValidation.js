@@ -8,5 +8,5 @@ export const updateUserSchema = Joi.object({
   password: Joi.string().optional(),
   phone: Joi.string().optional(),
   address: Joi.string().optional(),
-  role: Joi.string().optional()
+  role: Joi.string().optional(),
 });

@@ -1,12 +1,17 @@
 import User from "../Models/userModel.js"; // Import Sequelize User model
 import { updateUserSchema } from "../Validations/updateuserValidation.js";
 
+/**
+ * Get all users
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const getUsersController = async (req, res) => {
   try {
-    // Fetch users who are not deleted
     const users = await User.findAll({
       where: { isDeleted: false },
-      attributes: ["id", "username", "name", "email", "phone", "address"], // Adjust attributes as needed
+      attributes: ["id", "username", "name", "email", "phone", "address"],
     });
 
     res.status(200).send({
@@ -20,21 +25,24 @@ export const getUsersController = async (req, res) => {
     res.status(400).send({
       success: false,
       message: "Error while getting users",
-      error: error.message, // Provide concise error message
+      error: error.message,
     });
   }
 };
 
-
-
+/**
+ * Get user by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const getUsersByIdController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch user by ID who is not deleted
     const user = await User.findOne({
       where: { id, isDeleted: false },
-      attributes: ["id", "username", "name", "email", "phone", "address"], // Adjust attributes as needed
+      attributes: ["id", "username", "name", "email", "phone", "address"],
     });
 
     if (!user) {
@@ -54,28 +62,31 @@ export const getUsersByIdController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while getting user",
-      error: error.message, // Provide concise error message
+      error: error.message,
     });
   }
 };
 
+/**
+ * Update user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const updateUsersController = async (req, res) => {
   try {
-    // Parse request parameters
     const userId = req.params.id;
     const updateUser = req.body;
 
-    // Validate request body
     const { error } = updateUserSchema.validate(updateUser);
     if (error) {
       return res.status(400).send({
         success: false,
         message: "Validation error",
-        details: error.details.map((detail) => detail.message), // Provide specific validation errors
+        details: error.details.map((detail) => detail.message),
       });
     }
 
-    // Find the user by ID who is not deleted
     const user = await User.findOne({
       where: { id: userId, isDeleted: false },
     });
@@ -87,35 +98,35 @@ export const updateUsersController = async (req, res) => {
       });
     }
 
-    // Update user details in the database
-    await user.update(updateUser); // Use Sequelize's `update` method for updating user
+    await user.update(updateUser);
 
-    // Return success message along with the updated user
     return res.status(200).send({
       success: true,
       message: "User details updated successfully.",
       user,
     });
   } catch (error) {
-    // Handle errors
     console.error("Error updating user details:", error);
     return res.status(500).send({
       success: false,
       message: "Error updating user details.",
-      error: error.message, // Provide concise error message
+      error: error.message,
     });
   }
 };
 
-
-
+/**
+ * Soft delete user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const softDeleteUserController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find the user by ID
     const user = await User.findByPk(id);
-    
+
     if (!user) {
       return res.status(404).send({
         success: false,
@@ -123,7 +134,6 @@ export const softDeleteUserController = async (req, res) => {
       });
     }
 
-    // Update the user's isDeleted status
     const updatedUser = await user.update({ isDeleted: true });
 
     res.status(200).send({
@@ -136,18 +146,21 @@ export const softDeleteUserController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while soft deleting user",
-      error,
+      error: error.message,
     });
   }
 };
 
-
-
+/**
+ * Permanently delete user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const permanentDeleteUserController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Permanently delete the user by ID
     const result = await User.destroy({
       where: { id },
     });
@@ -168,25 +181,26 @@ export const permanentDeleteUserController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while permanently deleting user",
-      error,
+      error: error.message,
     });
   }
 };
 
-
-
-
+/**
+ * Restore soft-deleted user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const restoreUserController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Restore the user by setting isDeleted to false
     const [updated] = await User.update(
       { isDeleted: false },
       { where: { id }, returning: true }
     );
 
-    // Check if any row was updated
     if (updated === 0) {
       return res.status(404).send({
         success: false,
@@ -194,9 +208,8 @@ export const restoreUserController = async (req, res) => {
       });
     }
 
-    // Retrieve the updated user
     const user = await User.findByPk(id);
-    
+
     res.status(200).send({
       success: true,
       message: "User restored successfully",
@@ -207,104 +220,97 @@ export const restoreUserController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while restoring user",
-      error,
+      error: error.message,
     });
   }
 };
 
-
-
-
-
-
-
-
+/**
+ * Assign role to user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const assignRoleController = async (req, res) => {
   try {
-    const { id } = req.params; // User ID from the URL parameter
-    const { roleId } = req.body; // Role ID to assign from the request body
+    const { id } = req.params;
+    const { roleId } = req.body;
 
-    // Validate role input
-    if (!roleId || !['Admin', 'Manager', 'Employee'].includes(roleId)) {
+    if (!roleId || !["Admin", "Manager", "Employee"].includes(roleId)) {
       return res.status(400).send({
         success: false,
-        message: "Invalid role provided. Choose between 'Admin', 'Manager', or 'Employee'.",
+        message:
+          "Invalid role provided. Choose between 'Admin', 'Manager', or 'Employee'.",
       });
     }
 
-    // Find the user by ID and update their roleId
     const [updatedRows] = await User.update(
-      { roleId }, // Set the new roleId
-      { 
-        where: { id }, // Find the user by ID
-        returning: true, // Return the updated user
-        plain: true // Return a single object instead of an array
+      { roleId },
+      {
+        where: { id },
+        returning: true,
+        plain: true,
       }
     );
 
-    // If no rows were updated, the user was not found
     if (updatedRows === 0) {
       return res.status(404).send({
         success: false,
-        message: 'User not found.',
+        message: "User not found.",
       });
     }
 
-    // Fetch the updated user details
     const updatedUser = await User.findByPk(id);
 
     res.status(200).send({
       success: true,
-      message: 'Role assigned successfully.',
+      message: "Role assigned successfully.",
       user: updatedUser,
     });
   } catch (error) {
     console.error(error);
     res.status(500).send({
       success: false,
-      message: 'Error while assigning role to the user.',
-      error,
+      message: "Error while assigning role to the user.",
+      error: error.message,
     });
   }
 };
 
-
-
+/**
+ * Revoke role from user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const revokeRoleController = async (req, res) => {
   try {
-    const { id } = req.params; // User ID from the URL parameter
+    const { id } = req.params;
 
-    // Find the user by ID
     const user = await User.findByPk(id);
 
-    // If the user is not found
     if (!user) {
       return res.status(404).send({
         success: false,
-        message: 'User not found.',
+        message: "User not found.",
       });
     }
 
-    // Revoke the user's role by setting roleId to null or a default value
-    await User.update(
-      { roleId: "Employee" }, // Clear the roleId
-      { where: { id } } // Find the user by ID
-    );
+    await User.update({ roleId: "Employee" }, { where: { id } });
 
-    // Fetch the updated user details
     const updatedUser = await User.findByPk(id);
 
     res.status(200).send({
       success: true,
-      message: 'Role revoked successfully.',
+      message: "Role revoked successfully.",
       user: updatedUser,
     });
   } catch (error) {
     console.error(error);
     res.status(500).send({
       success: false,
-      message: 'Error while revoking role from the user.',
-      error,
+      message: "Error while revoking role from the user.",
+      error: error.message,
     });
   }
 };

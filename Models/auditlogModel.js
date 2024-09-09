@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js'; // Your Sequelize instance
+import sequelize from '../config/db.js'; 
 
 const AuditLog = sequelize.define('AuditLog', {
   action: {
@@ -7,7 +7,7 @@ const AuditLog = sequelize.define('AuditLog', {
     allowNull: false,
   },
   performedBy: {
-    type: DataTypes.UUID, // Match the type with the User model's id
+    type: DataTypes.UUID, 
     allowNull: false,
   },
   performedAt: {

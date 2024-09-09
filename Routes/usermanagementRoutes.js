@@ -9,7 +9,7 @@ import {
   restoreUserController,
   assignRoleController,
   revokeRoleController
-} from "../Controllers/usermanagementController.js"
+} from "../Controllers/usermanagementController.js";
 import {
   isAdmin,
   isAdminorManager,
@@ -17,30 +17,31 @@ import {
 } from "../Middleware/authMiddleware.js";
 import auditLogMiddleware from "../Middleware/auditMiddleware.js";
 
-
-//router object
+// Create a new Express router instance
 const router = express.Router();
 
-// //routing
-// router.post("/", requireSignIn, isAdmin, registerController);
-router.get("/", requireSignIn, isAdminorManager,auditLogMiddleware,getUsersController);
-router.get("/:id", requireSignIn,auditLogMiddleware, getUsersByIdController);
-router.put("/:id", requireSignIn, isAdmin, auditLogMiddleware,updateUsersController);
+// Route to get all users || Requires sign-in, admin or manager privileges, and audit logging || METHOD GET
+router.get("/", requireSignIn, isAdminorManager, auditLogMiddleware, getUsersController);
 
-// // Soft Delete User
-router.delete("/:id", requireSignIn, isAdmin, auditLogMiddleware,softDeleteUserController);
+// Route to get a user by ID || Requires sign-in and audit logging || METHOD GET
+router.get("/:id", requireSignIn, auditLogMiddleware, getUsersByIdController);
 
-// // Permanent Delete User
-router.delete("/permanent/:id",requireSignIn,isAdmin,auditLogMiddleware,permanentDeleteUserController);
+// Route to update a user || Requires sign-in, admin privileges, and audit logging || METHOD PUT
+router.put("/:id", requireSignIn, isAdmin, auditLogMiddleware, updateUsersController);
 
+// Route to soft delete a user || Requires sign-in, admin privileges, and audit logging || METHOD DELETE
+router.delete("/:id", requireSignIn, isAdmin, auditLogMiddleware, softDeleteUserController);
 
-// // Restore User
-router.patch("/restore/:id", requireSignIn, isAdmin, auditLogMiddleware,restoreUserController);
+// Route to permanently delete a user || Requires sign-in, admin privileges, and audit logging || METHOD DELETE
+router.delete("/permanent/:id", requireSignIn, isAdmin, auditLogMiddleware, permanentDeleteUserController);
 
-router.post("/:id/assign-role",requireSignIn,isAdmin,auditLogMiddleware,assignRoleController)
+// Route to restore a soft-deleted user || Requires sign-in, admin privileges, and audit logging || METHOD PATCH
+router.patch("/restore/:id", requireSignIn, isAdmin, auditLogMiddleware, restoreUserController);
 
-router.post("/:id/revoke-role", requireSignIn, isAdmin, auditLogMiddleware,revokeRoleController);
+// Route to assign a role to a user || Requires sign-in, admin privileges, and audit logging || METHOD POST
+router.post("/:id/assign-role", requireSignIn, isAdmin, auditLogMiddleware, assignRoleController);
 
-
+// Route to revoke a role from a user || Requires sign-in, admin privileges, and audit logging || METHOD POST
+router.post("/:id/revoke-role", requireSignIn, isAdmin, auditLogMiddleware, revokeRoleController);
 
 export default router;
