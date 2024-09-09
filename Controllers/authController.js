@@ -1,17 +1,23 @@
-import User from "../Models/userModel.js"; // Update import path if necessary
+import User from "../Models/userModel.js"; // Ensure the path to the User model is correct
 import JWT from "jsonwebtoken";
-import { hashPassword ,comparePassword} from "../Helper/authHelper.js"; // Make sure this path is correct
-import { signupSchema,loginSchema} from "../Validations/authValidation.js";
+import { hashPassword, comparePassword } from "../Helper/authHelper.js"; // Confirm the path to helper functions
+import {loginSchema,signupSchema} from "../Validations/authValidation.js"
 
-
+/**
+ * Controller for admin user registration.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const signupAdminController = async (req, res) => {
   try {
-    // Validate request body
-    await signupSchema.validateAsync(req.body); // Throws an error if validation fails
+    // Validate request body against the signup schema
+    await signupSchema.validateAsync(req.body);
 
     const { username, name, email, password, phone, address, role } = req.body;
 
-    // Check if the role is "admin"
+    // Ensure only admins can register new users
     if (role !== "Admin") {
       return res.status(403).send({
         success: false,
@@ -19,19 +25,19 @@ export const signupAdminController = async (req, res) => {
       });
     }
 
-    // Check if user already exists
+    // Check if a user with the same email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).send({
         success: false,
-        message: "Already registered. Please login.",
+        message: "Email is already registered. Please login.",
       });
     }
 
-    // Hash password
-    const hashedPassword = await hashPassword(password); // Assuming hashPassword is a utility function you've defined
+    // Hash the user's password before saving
+    const hashedPassword = await hashPassword(password);
 
-    // Save new user to the database
+    // Create a new user in the database
     const user = await User.create({
       username,
       name,
@@ -58,36 +64,40 @@ export const signupAdminController = async (req, res) => {
       },
     });
   } catch (error) {
-    // Handle validation errors separately
+    // Handle validation errors
     if (error.isJoi) {
       return res.status(400).send({
         success: false,
         message: "Validation error",
-        details: error.details.map((detail) => detail.message), // Provide specific validation errors
+        details: error.details.map((detail) => detail.message),
       });
     }
 
-    console.error("Error in registration:", error);
+    console.error("Error during user registration:", error);
     res.status(500).send({
       success: false,
-      message: "Error in registration",
+      message: "Error during registration",
       error: error.message,
     });
   }
 };
 
-
-
-
+/**
+ * Controller for user login.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const loginController = async (req, res) => {
   try {
-    // Validate request body using Joi
-    await loginSchema.validateAsync(req.body); // Throws an error if validation fails
+    // Validate request body against the login schema
+    await loginSchema.validateAsync(req.body);
 
     const { email, password } = req.body;
 
     // Check if the user exists in the database
-    const user = await User.findOne({ where: { email } }); // Ensure you're importing the correct User model
+    const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(404).send({
         success: false,
@@ -95,23 +105,23 @@ export const loginController = async (req, res) => {
       });
     }
 
-    // Compare passwords
-    const match = await comparePassword(password, user.password); // Assuming comparePassword is a utility function
+    // Verify the user's password
+    const match = await comparePassword(password, user.password);
     if (!match) {
-      return res.status(200).send({
+      return res.status(401).send({
         success: false,
-        message: "Invalid Password",
+        message: "Invalid password",
       });
     }
 
-    // Token generation
+    // Generate a JWT token for the user
     const token = JWT.sign({ id: user.id }, process.env.JWT_SECRETKEY, {
       expiresIn: "7d",
     });
-    
+
     res.status(200).send({
       success: true,
-      message: "Login successfully",
+      message: "Login successful",
       user: {
         id: user.id,
         name: user.name,
@@ -123,48 +133,60 @@ export const loginController = async (req, res) => {
       token,
     });
   } catch (error) {
+    // Handle validation errors
     if (error.isJoi) {
-      // Log the validation error
       console.log("Validation error:", error.details);
       return res.status(400).json({
         success: false,
         message: "Validation error",
-        details: error.details.map((detail) => detail.message), // Provide specific validation errors
+        details: error.details.map((detail) => detail.message),
       });
     }
 
-    console.log("Error in login:", error);
+    console.log("Error during login:", error);
     res.status(500).send({
       success: false,
-      message: "Error in login",
-      error: error.message, // Simplify the error message
+      message: "Error during login",
+      error: error.message,
     });
   }
 };
 
-
+/**
+ * Controller for user registration (non-admin roles).
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void}
+ */
 export const registerController = async (req, res) => {
   try {
-    await signupSchema.validateAsync(req.body); // Throws an error if validation fails
+    // Validate request body against the signup schema
+    await signupSchema.validateAsync(req.body);
+
     const { username, name, email, password, phone, address, role } = req.body;
 
-  
-    // Check user existence
-    const existingUser = await User.findOne({ where: { email } });
+    // Check if the role is valid
     if (role !== "Manager" && role !== "Employee") {
-      return res.status(400).send({ message: "Invalid role" });
-    }
-    if (existingUser) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
-        message: "Already registered. Please login.",
+        message: "Invalid role specified",
       });
     }
 
-    // Register user
+    // Check if a user with the same email already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).send({
+        success: false,
+        message: "Email is already registered. Please login.",
+      });
+    }
+
+    // Hash the user's password before saving
     const hashedPassword = await hashPassword(password);
 
-    // Save new user
+    // Create a new user in the database
     const user = await User.create({
       username,
       name,
@@ -178,14 +200,24 @@ export const registerController = async (req, res) => {
     res.status(201).send({
       success: true,
       message: "User registered successfully",
-      user,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        roleId: user.roleId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     });
   } catch (error) {
-    console.error("Error in registration:", error);
+    console.error("Error during user registration:", error);
     res.status(500).send({
       success: false,
-      message: "Error in registration",
-      error,
+      message: "Error during registration",
+      error: error.message,
     });
   }
 };
