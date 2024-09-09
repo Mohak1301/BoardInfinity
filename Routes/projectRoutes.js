@@ -9,8 +9,8 @@ import {
   createProjectController,
   getProjectsController,
   getProjectByIdController,
-  // updateProjectController,
-  // softDeleteProjectController,
+  updateProjectController,
+  softDeleteProjectController,
   // permanentDeleteProjectController,
   // restoreProjectController,
 } from "../Controllers/projectController.js";
@@ -21,8 +21,8 @@ const router = express.Router();
 router.post("/", requireSignIn, isAdmin, createProjectController);
 router.get("/", requireSignIn, getProjectsController);
 router.get("/:id", requireSignIn, getProjectByIdController);
-// router.put("/:id", requireSignIn, isAdmin, updateProjectController);
-// router.delete("/:id", requireSignIn, isAdmin, softDeleteProjectController);
+router.put("/:id", requireSignIn, isAdmin, updateProjectController);
+router.delete("/:id", requireSignIn, isAdmin, softDeleteProjectController);
 // router.delete("/permanent/:id", requireSignIn, isAdmin, permanentDeleteProjectController);
 // router.patch("/restore/:id",requireSignIn,isAdmin,restoreProjectController)
 
