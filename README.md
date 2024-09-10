@@ -20,11 +20,11 @@ The goal of this project is to implement a backend system where:
 
  #### User Authentication 
  
- &#8226;User login, signup, and JWT token-based authentication.
+ &#8226; User login, signup, and JWT token-based authentication.
 
 #### User Role Management
 
- &#8226;Admins can create users and assign them roles (Admin, Manager, or Employee).
+ &#8226; Admins can create users and assign them roles (Admin, Manager, or Employee).
 
 #### Project Management 
 
@@ -47,3 +47,6 @@ The goal of this project is to implement a backend system where:
  &#8226; Project Schema Validation: Ensures all project-related data is valid and prevents incomplete or incorrect data entry.
 
  &#8226; Role Validation: Ensures that only predefined roles ('Admin', 'Manager', 'Employee') are assigned to users.
+
+ ## Notion Document-
+     https://light-verdict-bc5.notion.site/Mohak_Tiwari-Admin-panel-8a6be621f8954db598c1577337ca468c?pvs=4
