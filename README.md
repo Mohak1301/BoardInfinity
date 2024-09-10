@@ -1,5 +1,10 @@
 
 
+ #### Notion Document :  https://light-verdict-bc5.notion.site/Mohak_Tiwari-Admin-panel-8a6be621f8954db598c1577337ca468c?pvs=4
+      
+ #### Deployment Link :  [boardinfinity.onrender.com](https://boardinfinity.onrender.com/)
+      
+ #### Postman Collection : https://documenter.getpostman.com/view/32409656/2sAXjSyTzP
 # Admin Panel API
 
 This project is a backend API built with Node.js, Express, and PostgreSQL, designed to support an Admin Panel with user management, role-based access control, and project management features. The API allows Admins to create and assign users, manage projects, and keep track of important actions via audit logs.
@@ -48,5 +53,9 @@ The goal of this project is to implement a backend system where:
 
  &#8226; Role Validation: Ensures that only predefined roles ('Admin', 'Manager', 'Employee') are assigned to users.
 
- ## Notion Document-
-     https://light-verdict-bc5.notion.site/Mohak_Tiwari-Admin-panel-8a6be621f8954db598c1577337ca468c?pvs=4
+
+
+
+
+
+
