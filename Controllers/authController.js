@@ -1,7 +1,7 @@
 import User from "../Models/userModel.js"; // Ensure the path to the User model is correct
 import JWT from "jsonwebtoken";
 import { hashPassword, comparePassword } from "../Helper/authHelper.js"; // Confirm the path to helper functions
-import { loginSchema, signupSchema } from "../Validations/authValidation.js"
+import { loginSchema, signupSchema } from "../Validations/authvalidation.js"
 
 /**
  * Controller for admin user registration.
